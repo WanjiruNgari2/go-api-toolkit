@@ -3,20 +3,33 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"io/ioutil"
+	"net/http"
+	"time"
 )
 
-// Define a struct to match the JSON response
 type Joke struct {
-	ID       int    `json:"id"`
-	Type     string `json:"type"`
-	Setup    string `json:"setup"`
+	Setup     string `json:"setup"`
 	Punchline string `json:"punchline"`
 }
 
+type ChuckNorrisJoke struct {
+	Value string `json:"value"`
+}
+
 func main() {
-	resp, err := http.Get("https://official-joke-api.appspot.com/random_joke")
+	fmt.Println("Choose joke type: 1 for Dad Joke, 2 for Chuck Norris Joke")
+	var choice int
+	fmt.Scanln(&choice)
+
+	var url string
+	if choice == 2 {
+		url = "https://api.chucknorris.io/jokes/random"
+	} else {
+		url = "https://official-joke-api.appspot.com/random_joke"
+	}
+
+	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("Error fetching joke:", err)
 		return
@@ -29,15 +42,30 @@ func main() {
 		return
 	}
 
-	var joke Joke
-	err = json.Unmarshal(body, &joke)
-	if err != nil {
-		fmt.Println("Error parsing JSON:", err)
-		return
-	}
+	fmt.Println("Time fetched:", time.Now().Format(time.RFC1123))
 
-	// Print only the joke setup and punchline
-	fmt.Println("Here's your joke:")
-	fmt.Println(joke.Setup)
-	fmt.Println(joke.Punchline)
+	if choice == 2 {
+		var chuck ChuckNorrisJoke
+		err = json.Unmarshal(body, &chuck)
+		if err != nil {
+			fmt.Println("Error parsing JSON. Raw body:")
+			fmt.Println(string(body))
+			fmt.Println("Error details:", err)
+			return
+		}
+		fmt.Println("Chuck Norris says:")
+		fmt.Println(chuck.Value)
+	} else {
+		var joke Joke
+		err = json.Unmarshal(body, &joke)
+		if err != nil {
+			fmt.Println("Error parsing JSON. Raw body:")
+			fmt.Println(string(body))
+			fmt.Println("Error details:", err)
+			return
+		}
+		fmt.Println("Here's your joke:")
+		fmt.Println(joke.Setup)
+		fmt.Println(joke.Punchline)
+	}
 }
