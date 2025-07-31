@@ -1,10 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"io/ioutil"
 )
+
+// Define a struct to match the JSON response
+type Joke struct {
+	ID       int    `json:"id"`
+	Type     string `json:"type"`
+	Setup    string `json:"setup"`
+	Punchline string `json:"punchline"`
+}
 
 func main() {
 	resp, err := http.Get("https://official-joke-api.appspot.com/random_joke")
@@ -20,6 +29,15 @@ func main() {
 		return
 	}
 
-	fmt.Println("Joke data:")
-	fmt.Println(string(body))
+	var joke Joke
+	err = json.Unmarshal(body, &joke)
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return
+	}
+
+	// Print only the joke setup and punchline
+	fmt.Println("Here's your joke:")
+	fmt.Println(joke.Setup)
+	fmt.Println(joke.Punchline)
 }
